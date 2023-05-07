@@ -12,7 +12,7 @@ function DiaryList({ diaryList, onRemove, onEdit }) {
                     <DiaryItem
                         key={item.id}
                         {...item}
-                        onDelete={onRemove}
+                        onRemove={onRemove}
                         onEdit={onEdit}
                     ></DiaryItem> // item 의 모든 속성을 전달함
                 ))}

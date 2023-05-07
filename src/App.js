@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
@@ -26,7 +26,8 @@ function App() {
         getData(); // mount 될 때
     }, []);
 
-    function onCreate(author, content, emotion) {
+    // 작성 완료 눌렀을 때 데이터 추가하는 함수
+    const onCreate = useCallback((author, content, emotion) => {
         const created_date = new Date().getTime();
         const newItem = {
             author,
@@ -36,15 +37,15 @@ function App() {
             id: dataId.current,
         };
         dataId.current += 1;
-        setData([newItem, ...data]);
-    }
+        setData((data) => [newItem, ...data]); // 항상 최신의 state 를 참조할 수 있도록 도와주는 함수형 업데이트
+    }, []); // mount 되는 시점에 한번만 생성되고, 그 다음부터는 함수를 재사용할 수 있도록 함.
 
-    function onRemove(targetId) {
+    const onRemove = (targetId) => {
         console.log(`${targetId}가 삭제되었습니다`);
         const newDiaryList = data.filter((item) => item.id !== targetId);
         console.log(newDiaryList);
         setData(newDiaryList);
-    }
+    };
 
     function onEdit(targetId, newContent) {
         setData(
@@ -76,7 +77,7 @@ function App() {
             <div>기분 나쁜 일기 개수 : {badCount}</div>
             <div>기분 좋은 일기 비율 : {goodRatio}</div>
             <DiaryList
-                onDelete={onRemove}
+                onRemove={onRemove}
                 diaryList={data}
                 onEdit={onEdit}
             ></DiaryList>
