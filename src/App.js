@@ -1,16 +1,48 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useMemo, useCallback, useReducer } from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
 
+const reducer = (state, action) => {
+    // 상태변화가 일어나기 직전의 state, action 객체
+    switch (action.type) {
+        case "INIT": {
+            return action.data;
+        }
+        case "CREATE": {
+            const created_date = new Date().getTime();
+            const newItem = {
+                ...action.data,
+                created_date,
+            };
+            return [newItem, ...state];
+        }
+        case "REMOVE": {
+            return state.filter((it) => it.id !== action.targetId);
+        }
+        case "EDIT": {
+            return state.map((it) =>
+                it.id === action.targetId
+                    ? { ...it, content: action.newContent }
+                    : it
+            );
+        }
+        default:
+            return state; // 아무런 상태를 변화시키지 않도록
+    }
+};
+
 function App() {
-    const [data, setData] = useState([]);
+    // const [data, setData] = useState([]);
+
+    const [data, dispatch] = useReducer(reducer, []); // 상태변화를 처리할함수, data state의 초기값
     const dataId = useRef(0); //0번 인덱스부터
 
     const getData = async () => {
         const res = await fetch(
             "https://jsonplaceholder.typicode.com/comments"
         ).then((res) => res.json());
+
         const initData = res.slice(0, 20).map((item) => {
             return {
                 author: item.email,
@@ -20,7 +52,7 @@ function App() {
                 id: dataId.current++,
             };
         });
-        setData(initData);
+        dispatch({ type: "INIT", data: initData });
     };
 
     useEffect(() => {
@@ -29,28 +61,25 @@ function App() {
 
     // 작성 완료 눌렀을 때 데이터 추가하는 함수
     const onCreate = useCallback((author, content, emotion) => {
-        const created_date = new Date().getTime();
-        const newItem = {
-            author,
-            content,
-            emotion,
-            created_date,
-            id: dataId.current,
-        };
+        dispatch({
+            type: "CREATE",
+            data: {
+                author,
+                content,
+                emotion,
+                id: dataId.current,
+            },
+        });
+
         dataId.current += 1;
-        setData((data) => [newItem, ...data]); // 항상 최신의 state 를 참조할 수 있도록 도와주는 함수형 업데이트
     }, []); // mount 되는 시점에 한번만 생성되고, 그 다음부터는 함수를 재사용할 수 있도록 함.
 
     const onRemove = useCallback((targetId) => {
-        setData((data) => data.filter((item) => item.id !== targetId));
+        dispatch({ type: "REMOVE", targetId });
     }, []);
 
     const onEdit = useCallback((targetId, newContent) => {
-        setData((data) =>
-            data.map((item) =>
-                item.id === targetId ? { ...item, content: newContent } : item
-            )
-        );
+        dispatch({ type: "EDIT", targetId, newContent });
     }, []);
 
     const getDiaryAnalysis = useMemo(
