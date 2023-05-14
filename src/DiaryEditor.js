@@ -1,9 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
 function DiaryEditor({ onCreate }) {
-    useEffect(() => {
-        console.log("DiaryEditor render");
-    });
     const authorInput = useRef();
     const contentInput = useRef();
 
@@ -14,8 +11,8 @@ function DiaryEditor({ onCreate }) {
     });
 
     const handleChangeState = (e) => {
-        console.log(e.target.name);
-        console.log(e.target.value);
+        // console.log(e.target.name);
+        // console.log(e.target.value);
 
         setState({
             ...state,

@@ -6,6 +6,7 @@ import DiaryList from "./DiaryList";
 function App() {
     const [data, setData] = useState([]);
     const dataId = useRef(0); //0번 인덱스부터
+
     const getData = async () => {
         const res = await fetch(
             "https://jsonplaceholder.typicode.com/comments"
@@ -40,20 +41,17 @@ function App() {
         setData((data) => [newItem, ...data]); // 항상 최신의 state 를 참조할 수 있도록 도와주는 함수형 업데이트
     }, []); // mount 되는 시점에 한번만 생성되고, 그 다음부터는 함수를 재사용할 수 있도록 함.
 
-    const onRemove = (targetId) => {
-        console.log(`${targetId}가 삭제되었습니다`);
-        const newDiaryList = data.filter((item) => item.id !== targetId);
-        console.log(newDiaryList);
-        setData(newDiaryList);
-    };
+    const onRemove = useCallback((targetId) => {
+        setData((data) => data.filter((item) => item.id !== targetId));
+    }, []);
 
-    function onEdit(targetId, newContent) {
-        setData(
+    const onEdit = useCallback((targetId, newContent) => {
+        setData((data) =>
             data.map((item) =>
                 item.id === targetId ? { ...item, content: newContent } : item
             )
         );
-    }
+    }, []);
 
     const getDiaryAnalysis = useMemo(
         // useMemo 는 값을 리턴함.
